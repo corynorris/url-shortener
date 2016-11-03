@@ -2,7 +2,7 @@ const favicon = require('serve-favicon');
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const isUrl = require('./is-url');
+const isUrl = require('is-url');
 const Url = require('./models/url');
 
 const port = process.env.PORT || process.argv[2] || 3000;
@@ -22,14 +22,15 @@ function shortenUrl(url, callback) {
     newUrl.save(callback);  
 }
 
-app.get('/new/:url', (req, res) => {
-    if (!isUrl(req.params.url)){
+app.get('/new/:url*', (req, res) => {
+    let url = req.url.slice(5);
+    if (!isUrl(url)){
         res.json({
             error: 'invalid url',
         });
         return;
     }
-    shortenUrl(req.params.url, function(err, shortUrl) {
+    shortenUrl(url, function(err, shortUrl) {
         if (err) throw err;
         res.json({
             short_url: `https://boiling-bayou-79322.herokuapp.com/${shortUrl.id}`,
@@ -39,15 +40,13 @@ app.get('/new/:url', (req, res) => {
 });
 
 app.get('/:id', (req, res) => {
-    getUrl(req.params.id, function(err, url) {
+    getUrl(req.params.id, function(err, redirect) {
         if (err) {
             res.json({
                 error: 'no url found for given id',
             })
         } else {
-            res.json({
-                original_url: redirect.url,
-            });
+            res.redirect(301, redirect.url);
         };
     });
 });
