@@ -1,57 +1,51 @@
 const favicon = require('serve-favicon');
 const express = require('express');
+const mongoose = require('mongoose');
 const path = require('path');
-const pg = require('pg');
+const isUrl = require('./is-url');
+const Url = require('./models/url');
 
 const port = process.env.PORT || process.argv[2] || 3000;
 const app = express();
 
-
-
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-pg.defaults.ssl = true;
 
+mongoose.connect(process.env.MONGODB_URI);
+const db = mongoose.connection;
 
-function getUrl(id) {
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (err) throw err;
-        console.log('Connected to postgres! Getting schemas...');
-
-        client
-            .query('SELECT table_schema,table_name FROM information_schema.tables;')
-            .on('row', function(row) {
-                console.log(JSON.stringify(row));
-            });
-    })
-
-    return id;
+function getUrl(id, callback) {
+    Url.findOne({"id": id}, callback);
 }
 
-function shortenUrl() {
-    pg.connect(process.env.DATABASE_URL, function(err, client) {
-        if (err) throw err;
-        console.log('Connected to postgres! Getting schemas...');
-
-        client
-            .query('SELECT table_schema,table_name FROM information_schema.tables;')
-            .on('row', function(row) {
-                console.log(JSON.stringify(row));
-            });
-    })
-
-    return id;
+function shortenUrl(url, callback) {    
+    var newUrl = Url({
+        "url": url,
+    })  
+    newUrl.save(callback);  
 }
 
-app.get('new/:url', (req, res) => {
-    res.json({
-        'original_url': req.params.url,
-        'serve_url': shortenUrl(req.params.url)
+app.get('/new/:url', (req, res) => {
+    if (!isUrl(req.params.url)){
+        res.json({
+            error: 'invalid url',
+        });
+        return;
+    }
+    shortenUrl(req.params.url, function(err, shortUrl) {
+        if (err) throw err;
+        res.json({
+            given_url: shortUrl.url,
+            id: shortUrl.id,
+        });    
     });
 });
 
 app.get('/:id', (req, res) => {
-    res.json({
-        'serve_url': getUrl(req.params.id)
+    getUrl(req.params.id, function(err, url) {
+        if (err) return {};
+        res.json({
+            "original_url": redirect.url,
+        });
     });
 });
 
