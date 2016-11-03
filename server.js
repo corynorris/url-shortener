@@ -23,7 +23,7 @@ function shortenUrl(url, callback) {
 }
 
 app.get('/new/:url*', (req, res) => {
-    let url = req.url.slice(5);
+    const url = req.url.slice(5);
     if (!isUrl(url)){
         res.json({
             error: 'invalid url',
