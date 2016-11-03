@@ -1,11 +1,10 @@
 # Url Shortener Microservice
 A microservice that shortens urls.
 
-
 # Demo
 ## Example Input
 https://little-url.herokuapp.com/new/https://www.google.com
-https://little-url.herokuapp.com/new/http://foo.com:80
+https://little-url.herokuapp.com/new/www.google.com
 
 ## Example Output
 ```json

@@ -9,9 +9,7 @@ const port = process.env.PORT || process.argv[2] || 3000;
 const app = express();
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
 mongoose.connect(process.env.MONGODB_URI);
-const db = mongoose.connection;
 
 function getUrl(id, callback) {
     Url.findOne({"id": id}, callback);
@@ -42,12 +40,20 @@ app.get('/new/:url', (req, res) => {
 
 app.get('/:id', (req, res) => {
     getUrl(req.params.id, function(err, url) {
-        if (err) return {};
-        res.json({
-            "original_url": redirect.url,
-        });
+        if (err) {
+            res.json({
+                error: 'no url found for given id',
+            })
+        } else {
+            res.json({
+                original_url: redirect.url,
+            });
+        };
     });
 });
 
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname, 'public', 'index.html');
+});
 
 app.listen(port);
