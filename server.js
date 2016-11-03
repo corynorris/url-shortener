@@ -32,8 +32,8 @@ app.get('/new/:url', (req, res) => {
     shortenUrl(req.params.url, function(err, shortUrl) {
         if (err) throw err;
         res.json({
+            short_url: `https://boiling-bayou-79322.herokuapp.com/${shortUrl.id}`,
             given_url: shortUrl.url,
-            id: shortUrl.id,
         });    
     });
 });
@@ -53,7 +53,7 @@ app.get('/:id', (req, res) => {
 });
 
 app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname, 'public', 'index.html');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port);

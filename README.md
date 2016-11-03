@@ -8,12 +8,11 @@ https://little-url.herokuapp.com/new/www.google.com
 
 ## Example Output
 ```json
-{ 
-    "original_url": "http://foo.com:80", 
-    "short_url": "https://little-url.herokuapp.com/8170" 
+{
+    "short_url": "https://boiling-bayou-79322.herokuapp.com/6",
+    "given_url": "www.yahoo.com"
 }
-
 ```
 
 ## Result
-Following the `short_url` will then redirect to the `original_url`.
+Following the `short_url` will then redirect to the `given_url`.
