@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>URL Shortener</title>
+    <title>Shorten a URL</title>
     <style>
       * {
         box-sizing: border-box;
@@ -13,69 +13,150 @@
       body {
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #0d1117;
-        color: #c9d1d9;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        background: #f6f8fa;
+        color: #24292f;
         min-height: 100vh;
         margin: 0;
       }
       .container {
-        max-width: 640px;
+        max-width: 720px;
         width: 100%;
-        padding: 2rem;
+        margin: 0 auto;
+        padding: 4rem 1.25rem;
       }
       h1 {
-        color: #58a6ff;
-        margin-bottom: 1rem;
-        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        font-size: 2.25rem;
       }
       h2 {
-        color: #f0883e;
+        color: #57606a;
+        font-size: 1rem;
         margin-top: 2rem;
         margin-bottom: 0.5rem;
       }
+      p {
+        color: #57606a;
+        line-height: 1.5;
+      }
+      form {
+        display: flex;
+        gap: 0.75rem;
+        margin: 2rem 0 1rem;
+      }
+      input {
+        flex: 1;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font: inherit;
+        padding: 0.75rem 0.875rem;
+        min-width: 0;
+      }
+      button {
+        border: 0;
+        border-radius: 6px;
+        background: #0969da;
+        color: white;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+      }
+      button:disabled {
+        opacity: 0.7;
+        cursor: wait;
+      }
       code {
-        background: #161b22;
+        background: #eef1f4;
         padding: 2px 6px;
         border-radius: 4px;
         font-size: 0.9em;
-        color: #7ee787;
       }
-      pre {
-        background: #161b22;
+      .result {
+        display: none;
+        background: #ffffff;
+        border: 1px solid #d0d7de;
         padding: 1rem;
         border-radius: 6px;
-        overflow-x: auto;
-        margin: 0.5rem 0 1rem;
+        margin-top: 1rem;
       }
-      .example {
-        color: #8b949e;
-        margin: 0.5rem 0;
+      .result.visible {
+        display: block;
       }
       a {
-        color: #58a6ff;
+        color: #0969da;
+        overflow-wrap: anywhere;
+      }
+      .error {
+        color: #cf222e;
+        margin-top: 0.75rem;
+      }
+      @media (max-width: 560px) {
+        form {
+          flex-direction: column;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>URL Shortener</h1>
-      <p>A simple URL shortening microservice.</p>
+      <h1>Shorten a URL</h1>
+      <p>Paste a public URL and get a compact link under this demo domain.</p>
 
-      <h2>Create a short URL</h2>
-      <p class="example">POST or GET <code>/new/https://example.com</code></p>
-      <pre>
-{"short_url":"https://your-domain/1","given_url":"https://example.com"}</pre>
+      <form id="shorten-form">
+        <input
+          id="url-input"
+          type="url"
+          placeholder="https://example.com/article"
+          autocomplete="url"
+          required
+        />
+        <button type="submit">Shorten</button>
+      </form>
 
-      <h2>Use it</h2>
-      <p>Visit <code>/1</code> to be redirected to the original URL.</p>
+      <div id="result" class="result"></div>
+      <div id="error" class="error" role="alert"></div>
+
+      <h2>API</h2>
+      <p>Create links with <code>GET /s/new/https://example.com</code>. Visit <code>/s/1</code> to redirect.</p>
 
       <p style="margin-top: 2rem; color: #484f58">
         Built with <a href="https://expressjs.com">Express</a> and
         <a href="https://mongodb.com">MongoDB</a>.
       </p>
     </div>
+    <script>
+      const form = document.getElementById("shorten-form");
+      const input = document.getElementById("url-input");
+      const result = document.getElementById("result");
+      const error = document.getElementById("error");
+      const button = form.querySelector("button");
+      const basePath = window.location.pathname.replace(/\/$/, "");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        result.classList.remove("visible");
+        result.textContent = "";
+        error.textContent = "";
+        button.disabled = true;
+
+        try {
+          const response = await fetch(
+            `${basePath}/new/${encodeURIComponent(input.value)}`,
+          );
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Could not shorten that URL");
+          }
+
+          result.innerHTML = `Short URL: <a href="${data.short_url}">${data.short_url}</a>`;
+          result.classList.add("visible");
+        } catch (err) {
+          error.textContent = err.message || "Could not shorten that URL";
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>

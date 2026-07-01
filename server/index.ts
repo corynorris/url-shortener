@@ -1,10 +1,9 @@
 import express from "express";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { connectDB } from "./db.js";
 import routes from "./routes.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicPath = path.resolve(process.cwd(), "public");
 const port =
   process.env.PORT || process.argv[2]
     ? parseInt(process.env.PORT || process.argv[2], 10)
@@ -13,14 +12,14 @@ const port =
 const app = express();
 
 // Serve static files from public/
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(publicPath));
 
 // API routes
 app.use("/", routes);
 
 // Root: serve static page
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+  res.sendFile(path.join(publicPath, "index.html"));
 });
 
 (async () => {
