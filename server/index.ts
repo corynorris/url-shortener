@@ -5,7 +5,10 @@ import { connectDB } from "./db.js";
 import routes from "./routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const port = process.env.PORT || process.argv[2] ? parseInt(process.env.PORT || process.argv[2], 10) : 3000;
+const port =
+  process.env.PORT || process.argv[2]
+    ? parseInt(process.env.PORT || process.argv[2], 10)
+    : 3000;
 
 const app = express();
 

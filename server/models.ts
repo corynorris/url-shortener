@@ -25,7 +25,7 @@ urlSchema.pre("save", async function (next) {
       const counter = await Counter.findByIdAndUpdate(
         "url_id",
         { $inc: { seq: 1 } },
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
       this.id = counter.seq;
       next();

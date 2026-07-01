@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 let connected = false;
 
 export async function connectDB(): Promise<void> {
-  const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/url-shortener";
+  const uri =
+    process.env.MONGODB_URI || "mongodb://localhost:27017/url-shortener";
 
   mongoose.connection.on("error", (err) => {
     console.error("MongoDB connection error:", err);

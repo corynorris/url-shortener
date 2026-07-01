@@ -6,15 +6,15 @@ A URL shortener microservice. Users submit a URL via `/new/:url` and get back a 
 
 ## Tech Stack and Key Dependencies
 
-| Dependency | Version | Purpose |
-|---|---|---|
-| **Node.js** | (runtime, no version pinned) | JavaScript runtime |
-| **Express** | ^4.14.0 (circa 2016) | HTTP server / routing |
-| **Mongoose** | ^5.7.6 (circa 2019) | MongoDB ODM |
-| **is-url** | ^1.2.2 | URL validation |
-| **serve-favicon** | ^2.3.0 | Serve favicon |
-| **platform** | ^1.3.1 | (unused dependency) |
-| **ESLint** | ^3.9.0 (circa 2016) | Dev: linting (airbnb config, react/jsx-a11y plugins — not used) |
+| Dependency        | Version                      | Purpose                                                         |
+| ----------------- | ---------------------------- | --------------------------------------------------------------- |
+| **Node.js**       | (runtime, no version pinned) | JavaScript runtime                                              |
+| **Express**       | ^4.14.0 (circa 2016)         | HTTP server / routing                                           |
+| **Mongoose**      | ^5.7.6 (circa 2019)          | MongoDB ODM                                                     |
+| **is-url**        | ^1.2.2                       | URL validation                                                  |
+| **serve-favicon** | ^2.3.0                       | Serve favicon                                                   |
+| **platform**      | ^1.3.1                       | (unused dependency)                                             |
+| **ESLint**        | ^3.9.0 (circa 2016)          | Dev: linting (airbnb config, react/jsx-a11y plugins — not used) |
 
 No lockfile (`package-lock.json` or `yarn.lock`). No `node_modules/` committed.
 
