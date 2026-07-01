@@ -27,11 +27,11 @@ app.get("/", (_req, res) => {
 (async () => {
   try {
     await connectDB();
-    app.listen(port, () => {
-      console.log(`URL shortener running on port ${port}`);
-    });
   } catch (err) {
-    console.error("Failed to start server:", err);
-    process.exit(1);
+    console.warn("Could not connect to MongoDB — DB features will be unavailable.");
   }
+
+  app.listen(port, () => {
+    console.log(`URL shortener running at http://localhost:${port}`);
+  });
 })();
