@@ -90,9 +90,52 @@
         color: #cf222e;
         margin-top: 0.75rem;
       }
+      .toolbar {
+        align-items: center;
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 2rem;
+      }
+      .url-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .url-item {
+        background: #ffffff;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 1rem;
+      }
+      .url-item-header {
+        align-items: baseline;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: space-between;
+      }
+      .url-id {
+        color: #57606a;
+        font-size: 0.875rem;
+      }
+      .url-target {
+        color: #57606a;
+        font-size: 0.875rem;
+        margin-top: 0.4rem;
+        overflow-wrap: anywhere;
+      }
+      .empty {
+        border: 1px dashed #d0d7de;
+        border-radius: 6px;
+        color: #57606a;
+        margin-top: 1rem;
+        padding: 1rem;
+      }
       @media (max-width: 560px) {
-        form {
+        form,
+        .toolbar,
+        .url-item-header {
           flex-direction: column;
+          align-items: stretch;
         }
       }
     </style>
@@ -116,8 +159,23 @@
       <div id="result" class="result"></div>
       <div id="error" class="error" role="alert"></div>
 
+      <div class="toolbar">
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search stored URLs"
+          autocomplete="off"
+        />
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <div id="url-list" class="url-list"></div>
+
       <h2>API</h2>
-      <p>Create links with <code>GET /s/new/https://example.com</code>. Visit <code>/s/1</code> to redirect.</p>
+      <p>
+        Create links with <code>POST /s/api/urls</code>, list links with
+        <code>GET /s/api/urls?q=example</code>, or use legacy
+        <code>GET /s/new/https://example.com</code>.
+      </p>
 
       <p style="margin-top: 2rem; color: #484f58">
         Built with <a href="https://expressjs.com">Express</a> and
@@ -130,7 +188,57 @@
       const result = document.getElementById("result");
       const error = document.getElementById("error");
       const button = form.querySelector("button");
+      const searchInput = document.getElementById("search-input");
+      const searchButton = document.getElementById("search-button");
+      const urlList = document.getElementById("url-list");
       const basePath = window.location.pathname.replace(/\/$/, "");
+      const apiUrl = `${basePath}/api/urls`;
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, (char) => {
+          const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          };
+          return entities[char];
+        });
+      }
+
+      function renderUrls(urls) {
+        if (!urls.length) {
+          urlList.innerHTML = '<div class="empty">No stored URLs found.</div>';
+          return;
+        }
+
+        urlList.innerHTML = urls
+          .map(
+            (url) => `
+              <article class="url-item">
+                <div class="url-item-header">
+                  <a href="${escapeHtml(url.short_url)}">${escapeHtml(url.short_url)}</a>
+                  <span class="url-id">#${url.id}</span>
+                </div>
+                <div class="url-target">${escapeHtml(url.given_url)}</div>
+              </article>
+            `,
+          )
+          .join("");
+      }
+
+      async function loadUrls() {
+        const query = searchInput.value.trim();
+        const response = await fetch(
+          `${apiUrl}${query ? `?q=${encodeURIComponent(query)}` : ""}`,
+        );
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Could not load stored URLs");
+        }
+        renderUrls(data);
+      }
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -140,9 +248,11 @@
         button.disabled = true;
 
         try {
-          const response = await fetch(
-            `${basePath}/new/${encodeURIComponent(input.value)}`,
-          );
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: input.value }),
+          });
           const data = await response.json();
 
           if (!response.ok) {
@@ -151,11 +261,31 @@
 
           result.innerHTML = `Short URL: <a href="${data.short_url}">${data.short_url}</a>`;
           result.classList.add("visible");
+          input.value = "";
+          await loadUrls();
         } catch (err) {
           error.textContent = err.message || "Could not shorten that URL";
         } finally {
           button.disabled = false;
         }
+      });
+
+      searchButton.addEventListener("click", () => {
+        error.textContent = "";
+        loadUrls().catch((err) => {
+          error.textContent = err.message || "Could not load stored URLs";
+        });
+      });
+
+      searchInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          searchButton.click();
+        }
+      });
+
+      loadUrls().catch((err) => {
+        error.textContent = err.message || "Could not load stored URLs";
       });
     </script>
   </body>

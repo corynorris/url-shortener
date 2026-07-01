@@ -1,29 +1,40 @@
 import { Router, type Request, type Response } from "express";
-import { findByShortId, createShortUrl } from "./models.js";
+import { createShortUrl, findByShortId, listShortUrls } from "./models.js";
 
 const router: Router = Router();
 
 function getBaseUrl(req: Request): string {
-  return process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+  return baseUrl.replace(/\/$/, "");
 }
 
-function isValidUrl(str: string): boolean {
+function normalizeUrl(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (
+    trimmed.length === 0 ||
+    trimmed.length > 2048 ||
+    /[\u0000-\u001F\u007F\s]/.test(trimmed)
+  ) {
+    return null;
+  }
+
+  const withProtocol = /^[a-z][a-z0-9+.-]*:/i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
   try {
-    const url = new URL(str);
-    return url.protocol === "http:" || url.protocol === "https:";
+    const url = new URL(withProtocol);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (!url.hostname || url.username || url.password) return null;
+    return url.href;
   } catch {
-    return false;
+    return null;
   }
 }
 
-// POST /new/:url* — create a shortened URL
-router.post("/new/:url(*)", async (req: Request, res: Response) => {
-  const url = req.params.url;
-
-  if (!url || !isValidUrl(url)) {
-    res.status(400).json({ error: "invalid url" });
-    return;
-  }
+async function createUrlResponse(req: Request, res: Response, rawUrl: string) {
+  const url = normalizeUrl(rawUrl);
+  if (!url) return res.status(400).json({ error: "invalid url" });
 
   try {
     const record = await createShortUrl(url);
@@ -36,28 +47,45 @@ router.post("/new/:url(*)", async (req: Request, res: Response) => {
     console.error("Error creating short URL:", err);
     res.status(500).json({ error: "failed to create short url" });
   }
+}
+
+// GET /api/urls — list stored URLs, newest first
+router.get("/api/urls", async (req: Request, res: Response) => {
+  const query = typeof req.query.q === "string" ? req.query.q : undefined;
+  const limit =
+    typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) : 50;
+
+  try {
+    const records = await listShortUrls(query, Number.isFinite(limit) ? limit : 50);
+    const baseUrl = getBaseUrl(req);
+    res.json(
+      records.map((record) => ({
+        id: record.id,
+        short_url: `${baseUrl}/${record.id}`,
+        given_url: record.url,
+        created_at: record.createdAt,
+      })),
+    );
+  } catch (err) {
+    console.error("Error listing URLs:", err);
+    res.status(500).json({ error: "failed to list urls" });
+  }
+});
+
+// POST /api/urls — create a shortened URL
+router.post("/api/urls", async (req: Request, res: Response) => {
+  const url = typeof req.body?.url === "string" ? req.body.url : "";
+  await createUrlResponse(req, res, url);
+});
+
+// POST /new/:url* — create a shortened URL
+router.post("/new/:url(*)", async (req: Request, res: Response) => {
+  await createUrlResponse(req, res, req.params.url);
 });
 
 // GET /new/:url* — also support GET for creating shortened URLs (backwards compat)
 router.get("/new/:url(*)", async (req: Request, res: Response) => {
-  const url = req.params.url;
-
-  if (!url || !isValidUrl(url)) {
-    res.status(400).json({ error: "invalid url" });
-    return;
-  }
-
-  try {
-    const record = await createShortUrl(url);
-    const baseUrl = getBaseUrl(req);
-    res.json({
-      short_url: `${baseUrl}/${record.id}`,
-      given_url: record.url,
-    });
-  } catch (err) {
-    console.error("Error creating short URL:", err);
-    res.status(500).json({ error: "failed to create short url" });
-  }
+  await createUrlResponse(req, res, req.params.url);
 });
 
 // GET /:id — redirect to original URL

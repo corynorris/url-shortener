@@ -48,4 +48,22 @@ export async function createShortUrl(url: string): Promise<IUrl> {
   return record.save();
 }
 
+export async function listShortUrls(
+  query?: string,
+  limit = 50,
+): Promise<IUrl[]> {
+  const safeLimit = Math.max(1, Math.min(limit, 100));
+  const trimmedQuery = query?.trim();
+  const filter = trimmedQuery
+    ? {
+        url: {
+          $regex: trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          $options: "i",
+        },
+      }
+    : {};
+
+  return Url.find(filter).sort({ createdAt: -1 }).limit(safeLimit);
+}
+
 export default Url;
