@@ -1,12 +1,37 @@
 import { Router, type Request, type Response } from "express";
-import { createShortUrl, findByShortId, listShortUrls, getAllUrls, deleteUrlsByIds } from "./models.js";
+import {
+  createShortUrl,
+  findByShortId,
+  listShortUrls,
+  getAllUrls,
+  deleteUrlsByIds,
+} from "./models.js";
 import type { IUrl } from "./models.js";
 
 const router: Router = Router();
 
 function getBaseUrl(req: Request): string {
-  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+  const baseUrl =
+    process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
   return baseUrl.replace(/\/$/, "");
+}
+
+/**
+ * Detect URLs where the hostname appears duplicated in the path,
+ * e.g. https://demos.corynorris.me/demos.corynorris.me/comments/
+ * These are usually malformed and will never resolve.
+ */
+function isSuspiciousUrl(url: URL): boolean {
+  const hostname = url.hostname.toLowerCase();
+  if (hostname.length === 0) return false;
+
+  // Normalize trailing slash for path segment comparison
+  const path =
+    url.pathname.toLowerCase() + (url.pathname.endsWith("/") ? "" : "/");
+
+  // Check if any full path segment equals the hostname
+  const segments = path.split("/").filter(Boolean);
+  return segments.some((seg) => seg === hostname);
 }
 
 function normalizeUrl(raw: string): string | null {
@@ -27,6 +52,7 @@ function normalizeUrl(raw: string): string | null {
     const url = new URL(withProtocol);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
     if (!url.hostname || url.username || url.password) return null;
+    if (isSuspiciousUrl(url)) return null;
     return url.href;
   } catch {
     return null;
@@ -57,7 +83,10 @@ router.get("/api/urls", async (req: Request, res: Response) => {
     typeof req.query.limit === "string" ? parseInt(req.query.limit, 10) : 50;
 
   try {
-    const records = await listShortUrls(query, Number.isFinite(limit) ? limit : 50);
+    const records = await listShortUrls(
+      query,
+      Number.isFinite(limit) ? limit : 50,
+    );
     const baseUrl = getBaseUrl(req);
     res.json(
       records.map((record) => ({
@@ -118,12 +147,33 @@ const URL_CHECK_TIMEOUT = 15_000;
 const CHECK_CONCURRENCY = 10;
 
 /**
+ * Quick pre-check: reject URLs that are structurally suspicious without
+ * even fetching them (hostname duplicated in path, etc.).
+ */
+function quickStructuralCheck(targetUrl: string): string | null {
+  try {
+    const url = new URL(targetUrl);
+    if (isSuspiciousUrl(url)) {
+      return "Suspicious URL (hostname in path)";
+    }
+    return null;
+  } catch {
+    return "Invalid URL syntax";
+  }
+}
+
+/**
  * Attempt to reach a URL with HEAD, falling back to GET.
  * Returns { ok: true } if a 2xx response is received.
  */
 async function checkUrlHealth(
   targetUrl: string,
 ): Promise<{ ok: boolean; reason?: string }> {
+  const structuralIssue = quickStructuralCheck(targetUrl);
+  if (structuralIssue) {
+    return { ok: false, reason: structuralIssue };
+  }
+
   const deadline = Date.now() + URL_CHECK_TIMEOUT;
 
   for (const method of ["HEAD", "GET"] as const) {
@@ -151,8 +201,7 @@ async function checkUrlHealth(
       clearTimeout(timer);
 
       if (method === "GET") {
-        const message =
-          err instanceof Error ? err.message : String(err);
+        const message = err instanceof Error ? err.message : String(err);
         return { ok: false, reason: message };
       }
       // HEAD failed — fall through to GET
