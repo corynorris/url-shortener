@@ -34,6 +34,13 @@
         margin-top: 2rem;
         margin-bottom: 0.5rem;
       }
+      h3 {
+        color: #57606a;
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+      }
       p {
         color: #57606a;
         line-height: 1.5;
@@ -138,6 +145,148 @@
           align-items: stretch;
         }
       }
+
+      /* ---- Health Check UI ---- */
+      .check-section {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #d0d7de;
+      }
+      .check-section h2 {
+        margin-top: 0;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.4rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.15s, opacity 0.15s;
+      }
+      .btn-primary {
+        background: #1a7f37;
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #2ea043;
+      }
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .results {
+        margin-top: 1rem;
+      }
+      .results-hidden {
+        display: none;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin: 0.75rem 0 1rem;
+      }
+      .summary-card {
+        background: #ffffff;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 0.75rem;
+        text-align: center;
+      }
+      .summary-card .number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: block;
+      }
+      .summary-card .label {
+        font-size: 0.8rem;
+        color: #57606a;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .summary-card.working .number {
+        color: #1a7f37;
+      }
+      .summary-card.broken .number {
+        color: #cf222e;
+      }
+      .summary-card.total .number {
+        color: #0969da;
+      }
+
+      .check-list {
+        list-style: none;
+        margin: 0.5rem 0;
+      }
+      .check-list li {
+        background: #ffffff;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        word-break: break-all;
+      }
+      .check-list .badge {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
+      .badge-ok {
+        background: #dafbe1;
+        color: #1a7f37;
+        border: 1px solid #1a7f37;
+      }
+      .badge-fail {
+        background: #ffebe9;
+        color: #cf222e;
+        border: 1px solid #cf222e;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #d0d7de;
+        border-top-color: #0969da;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .status-msg {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #57606a;
+        margin: 0.75rem 0;
+      }
+      .error-msg {
+        color: #cf222e;
+        background: #ffebe9;
+        border: 1px solid #cf222e;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin: 0.75rem 0;
+      }
     </style>
   </head>
   <body>
@@ -181,7 +330,52 @@
         Built with <a href="https://expressjs.com">Express</a> and
         <a href="https://mongodb.com">MongoDB</a>.
       </p>
+
+      <!-- Health Check Section -->
+      <div class="check-section">
+        <h2>URL Health Check</h2>
+        <p style="margin-bottom: 0.75rem">
+          Check all stored URLs and automatically remove any that are
+          unreachable or return errors.
+        </p>
+        <button id="checkBtn" class="btn btn-primary">
+          <span class="spinner" id="checkSpinner" style="display: none"></span>
+          Check All URLs
+        </button>
+
+        <div id="results" class="results results-hidden">
+          <div id="statusMsg" class="status-msg"></div>
+
+          <div id="summaryArea" class="results-hidden">
+            <div class="summary-grid">
+              <div class="summary-card total">
+                <span class="number" id="checkedCount">0</span>
+                <span class="label">Checked</span>
+              </div>
+              <div class="summary-card broken">
+                <span class="number" id="removedCount">0</span>
+                <span class="label">Removed</span>
+              </div>
+              <div class="summary-card working">
+                <span class="number" id="remainingCount">0</span>
+                <span class="label">Working</span>
+              </div>
+            </div>
+
+            <div id="removedSection" class="results-hidden">
+              <h3>Removed URLs</h3>
+              <ul class="check-list" id="removedList"></ul>
+            </div>
+
+            <div id="workingSection" class="results-hidden">
+              <h3>Working URLs</h3>
+              <ul class="check-list" id="workingList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
     <script>
       const form = document.getElementById("shorten-form");
       const input = document.getElementById("url-input");
@@ -259,7 +453,7 @@
             throw new Error(data.error || "Could not shorten that URL");
           }
 
-          result.innerHTML = `Short URL: <a href="${data.short_url}">${data.short_url}</a>`;
+          result.innerHTML = `Short URL: <a href="${escapeHtml(data.short_url)}">${escapeHtml(data.short_url)}</a>`;
           result.classList.add("visible");
           input.value = "";
           await loadUrls();
@@ -286,6 +480,101 @@
 
       loadUrls().catch((err) => {
         error.textContent = err.message || "Could not load stored URLs";
+      });
+
+      /* ---- Health Check JS ---- */
+      const checkBtn = document.getElementById("checkBtn");
+      const checkSpinner = document.getElementById("checkSpinner");
+      const healthResults = document.getElementById("results");
+      const statusMsg = document.getElementById("statusMsg");
+      const summaryArea = document.getElementById("summaryArea");
+      const checkedCount = document.getElementById("checkedCount");
+      const removedCount = document.getElementById("removedCount");
+      const remainingCount = document.getElementById("remainingCount");
+      const removedSection = document.getElementById("removedSection");
+      const removedList = document.getElementById("removedList");
+      const workingSection = document.getElementById("workingSection");
+      const workingList = document.getElementById("workingList");
+
+      checkBtn.addEventListener("click", async () => {
+        checkBtn.disabled = true;
+        checkBtn.textContent = "Checking\u2026";
+        checkSpinner.style.display = "inline-block";
+        healthResults.classList.remove("results-hidden");
+        summaryArea.classList.add("results-hidden");
+        removedSection.classList.add("results-hidden");
+        workingSection.classList.add("results-hidden");
+        removedList.innerHTML = "";
+        workingList.innerHTML = "";
+        statusMsg.innerHTML = '<span class="spinner"></span> Checking all URLs\u2026';
+
+        try {
+          const response = await fetch(`${basePath}/check`, { method: "POST" });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(
+              errData.error || `Server returned ${response.status}`,
+            );
+          }
+
+          const data = await response.json();
+
+          statusMsg.innerHTML = "";
+          summaryArea.classList.remove("results-hidden");
+          checkedCount.textContent = data.checked;
+          removedCount.textContent = data.removed;
+          remainingCount.textContent = data.remaining;
+
+          if (data.removedUrls && data.removedUrls.length > 0) {
+            removedSection.classList.remove("results-hidden");
+            for (const item of data.removedUrls) {
+              const li = document.createElement("li");
+              const reason = item.reason || "unknown";
+              li.innerHTML =
+                "<span>" +
+                escapeHtml(item.url) +
+                ' <span style="color:#57606a;font-size:0.8rem">(#' +
+                item.id +
+                ")</span></span>" +
+                '<span class="badge badge-fail">' +
+                escapeHtml(reason) +
+                "</span>";
+              removedList.appendChild(li);
+            }
+          }
+
+          if (data.workingUrls && data.workingUrls.length > 0) {
+            workingSection.classList.remove("results-hidden");
+            for (const item of data.workingUrls) {
+              const li = document.createElement("li");
+              li.innerHTML =
+                "<span>" +
+                escapeHtml(item.url) +
+                ' <span style="color:#57606a;font-size:0.8rem">(#' +
+                item.id +
+                ")</span></span>" +
+                '<span class="badge badge-ok">OK</span>';
+              workingList.appendChild(li);
+            }
+          }
+
+          if (data.checked === 0) {
+            statusMsg.textContent = "No URLs stored yet. Nothing to check.";
+          } else if (data.removed === 0) {
+            statusMsg.textContent = "All URLs are working \u2014 nothing to remove.";
+          } else {
+            statusMsg.textContent =
+              "Removed " + data.removed + " broken URL(s).";
+          }
+        } catch (err) {
+          statusMsg.className = "error-msg";
+          statusMsg.textContent = "Error: " + err.message;
+        } finally {
+          checkBtn.disabled = false;
+          checkBtn.textContent = "Check All URLs";
+          checkSpinner.style.display = "none";
+        }
       });
     </script>
   </body>

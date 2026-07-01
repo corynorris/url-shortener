@@ -66,4 +66,12 @@ export async function listShortUrls(
   return Url.find(filter).sort({ createdAt: -1 }).limit(safeLimit);
 }
 
+export async function getAllUrls(): Promise<IUrl[]> {
+  return Url.find({}).sort({ id: 1 });
+}
+
+export async function deleteUrlsByIds(ids: number[]): Promise<void> {
+  await Url.deleteMany({ id: { $in: ids } });
+}
+
 export default Url;
