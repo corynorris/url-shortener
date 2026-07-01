@@ -1,28 +1,26 @@
 {
   "name": "url-shortener",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "URL shortener microservice",
+  "main": "dist/server/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "deploy": "git push heroku master"
+    "dev": "tsx watch server/index.ts",
+    "build": "tsc",
+    "start": "node dist/server/index.js",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["url-shortener", "express", "mongodb"],
+  "author": "Cory Norris",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.14.0",
-    "mongoose": "^5.7.6",
-    "platform": "^1.3.1",
-    "serve-favicon": "^2.3.0",
-    "is-url": "^1.2.2"
+    "express": "^4.21.0",
+    "mongoose": "^8.5.0"
   },
   "devDependencies": {
-    "eslint": "^3.9.0",
-    "eslint-config-airbnb": "^12.0.0",
-    "eslint-plugin-import": "^2.0.1",
-    "eslint-plugin-jsx-a11y": "^2.2.3",
-    "eslint-plugin-react": "^6.4.1"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
   }
 }
