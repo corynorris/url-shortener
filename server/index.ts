@@ -1,6 +1,6 @@
 import express from "express";
 import path from "node:path";
-import { connectDB } from "./db.js";
+import { migrate } from "./db.js";
 import routes from "./routes.js";
 
 const publicPath = path.resolve(process.cwd(), "public");
@@ -26,9 +26,10 @@ app.get("/", (_req, res) => {
 
 (async () => {
   try {
-    await connectDB();
+    await migrate();
   } catch (err) {
-    console.warn("Could not connect to MongoDB — DB features will be unavailable.");
+    console.error("Could not connect to PostgreSQL:", err);
+    process.exit(1);
   }
 
   app.listen(port, () => {

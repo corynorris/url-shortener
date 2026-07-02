@@ -1,35 +1,34 @@
-import mongoose from "mongoose";
+import pg from "pg";
 
-let connected = false;
+const { Pool } = pg;
 
-export async function connectDB(): Promise<void> {
-  const uri =
-    process.env.MONGODB_URI || "mongodb://localhost:27017/url-shortener";
+const pool = new Pool({
+  connectionString:
+    process.env.DATABASE_URL ||
+    "postgres://localhost:5432/url_shortener",
+});
 
-  mongoose.connection.on("error", (err) => {
-    console.error("MongoDB connection error:", err);
-    connected = false;
-  });
-
-  mongoose.connection.on("disconnected", () => {
-    console.warn("MongoDB disconnected");
-    connected = false;
-  });
-
-  try {
-    await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 3000,
-      connectTimeoutMS: 3000,
-    });
-    connected = true;
-    console.log("Connected to MongoDB");
-  } catch (err) {
-    console.error("Failed to connect to MongoDB:", err);
-    connected = false;
-    throw err;
-  }
+export async function query(
+  text: string,
+  params?: unknown[],
+): Promise<pg.QueryResult> {
+  return pool.query(text, params);
 }
 
-export function isConnected(): boolean {
-  return connected && mongoose.connection.readyState === 1;
+export async function getClient(): Promise<pg.PoolClient> {
+  return pool.connect();
+}
+
+export async function migrate(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS urls (
+      id SERIAL PRIMARY KEY,
+      url TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+}
+
+export async function closePool(): Promise<void> {
+  await pool.end();
 }

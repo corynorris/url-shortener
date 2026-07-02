@@ -6,7 +6,7 @@ import {
   getAllUrls,
   deleteUrlsByIds,
 } from "./models.js";
-import type { IUrl } from "./models.js";
+import type { UrlRecord } from "./models.js";
 
 const router: Router = Router();
 
@@ -215,7 +215,7 @@ async function checkUrlHealth(
  * Check all stored URLs in concurrent batches.
  * Returns arrays of working and broken results.
  */
-async function checkAllStoredUrls(records: IUrl[]) {
+async function checkAllStoredUrls(records: UrlRecord[]) {
   const results: Array<{
     id: number;
     url: string;

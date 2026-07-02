@@ -17,17 +17,17 @@
   "keywords": [
     "url-shortener",
     "express",
-    "mongodb"
+    "postgresql"
   ],
   "author": "Cory Norris",
   "license": "ISC",
   "dependencies": {
     "express": "^4.21.0",
-    "mongoose": "^8.5.0"
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/express": "^4.17.21",
+    "@types/pg": "^8.11.0",
     "@types/node": "^20.14.0",
     "eslint": "^10.6.0",
     "prettier": "^3.9.4",
