@@ -93,7 +93,7 @@ router.get("/api/urls", async (req: Request, res: Response) => {
         id: record.id,
         short_url: `${baseUrl}/${record.id}`,
         given_url: record.url,
-        created_at: record.createdAt,
+        created_at: record.created_at,
       })),
     );
   } catch (err) {
@@ -110,17 +110,17 @@ router.post("/api/urls", async (req: Request, res: Response) => {
 
 // POST /new/:url* — create a shortened URL
 router.post("/new/:url(*)", async (req: Request, res: Response) => {
-  await createUrlResponse(req, res, req.params.url);
+  await createUrlResponse(req, res, req.params.url as string);
 });
 
 // GET /new/:url* — also support GET for creating shortened URLs (backwards compat)
 router.get("/new/:url(*)", async (req: Request, res: Response) => {
-  await createUrlResponse(req, res, req.params.url);
+  await createUrlResponse(req, res, req.params.url as string);
 });
 
 // GET /:id — redirect to original URL
 router.get("/:id(\\d+)", async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(req.params.id as string, 10);
 
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid id" });

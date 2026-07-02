@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Request, type Response } from "express";
 import path from "node:path";
 import { migrate } from "./db.js";
 import routes from "./routes.js";
@@ -20,7 +20,7 @@ app.use(express.static(publicPath));
 app.use("/", routes);
 
 // Root: serve static page
-app.get("/", (_req, res) => {
+app.get("/", (_req: Request, res: Response) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
