@@ -1,39 +1,39 @@
 {
-  "name": "url-shortener",
-  "version": "2.0.0",
-  "type": "module",
-  "description": "URL shortener microservice",
-  "main": "dist/server/index.js",
-  "scripts": {
-    "dev": "tsx watch server/index.ts",
-    "build": "tsc",
-    "start": "node dist/server/index.js",
-    "test": "echo \"Tests not yet implemented\" && exit 0",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix ."
-  },
-  "keywords": [
-    "url-shortener",
-    "express",
-    "postgresql"
-  ],
-  "author": "Cory Norris",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.21.0",
-    "pg": "^8.13.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/express": "^5.0.0",
-    "@types/pg": "^8.11.0",
-    "@types/node": "^20.14.0",
-    "eslint": "^10.6.0",
-    "prettier": "^3.9.4",
-    "tsx": "^4.16.0",
-    "typescript": "^5.5.0",
-    "typescript-eslint": "^8.62.1"
-  }
+	"name": "url-shortener",
+	"version": "2.0.0",
+	"type": "module",
+	"description": "URL shortener microservice",
+	"main": "dist/server/index.js",
+	"scripts": {
+		"dev": "tsx watch server/index.ts",
+		"build": "tsc",
+		"start": "node dist/server/index.js",
+		"test": "echo \"Tests not yet implemented\" && exit 0",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint": "eslint .",
+		"lint:fix": "eslint --fix ."
+	},
+	"keywords": [
+		"url-shortener",
+		"express",
+		"postgresql"
+	],
+	"author": "Cory Norris",
+	"license": "ISC",
+	"dependencies": {
+		"express": "^4.21.0",
+		"pg": "^8.13.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@types/express": "^5.0.0",
+		"@types/pg": "^8.11.0",
+		"@types/node": "^20.14.0",
+		"eslint": "^10.6.0",
+		"prettier": "^3.9.4",
+		"tsx": "^4.16.0",
+		"typescript": "^5.5.0",
+		"typescript-eslint": "^8.62.1"
+	}
 }
