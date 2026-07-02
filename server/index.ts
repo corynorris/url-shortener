@@ -5,9 +5,9 @@ import routes from "./routes.js";
 
 const publicPath = path.resolve(process.cwd(), "public");
 const port =
-  process.env.PORT || process.argv[2]
-    ? parseInt(process.env.PORT || process.argv[2], 10)
-    : 3000;
+	process.env.PORT || process.argv[2]
+		? parseInt(process.env.PORT || process.argv[2], 10)
+		: 3000;
 
 const app = express();
 
@@ -21,18 +21,18 @@ app.use("/", routes);
 
 // Root: serve static page
 app.get("/", (_req: Request, res: Response) => {
-  res.sendFile(path.join(publicPath, "index.html"));
+	res.sendFile(path.join(publicPath, "index.html"));
 });
 
 (async () => {
-  try {
-    await migrate();
-  } catch (err) {
-    console.error("Could not connect to PostgreSQL:", err);
-    process.exit(1);
-  }
+	try {
+		await migrate();
+	} catch (err) {
+		console.error("Could not connect to PostgreSQL:", err);
+		process.exit(1);
+	}
 
-  app.listen(port, () => {
-    console.log(`URL shortener running at http://localhost:${port}`);
-  });
+	app.listen(port, () => {
+		console.log(`URL shortener running at http://localhost:${port}`);
+	});
 })();
