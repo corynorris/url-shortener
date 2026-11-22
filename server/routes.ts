@@ -108,24 +108,33 @@ router.post("/api/urls", async (req: Request, res: Response) => {
 	await createUrlResponse(req, res, url);
 });
 
-// POST /new/:url* — create a shortened URL
-router.post("/new/:url(*)", async (req: Request, res: Response) => {
-	await createUrlResponse(req, res, req.params.url as string);
+// Express 5 (path-to-regexp v8) dropped inline regex params: use a wildcard
+// and validate the parameter inside the handler instead.
+function wildcardParam(value: unknown): string {
+	if (Array.isArray(value)) return value.join("/");
+	return typeof value === "string" ? value : "";
+}
+
+// POST /new/*url — create a shortened URL
+router.post("/new/*url", async (req: Request, res: Response) => {
+	await createUrlResponse(req, res, wildcardParam(req.params.url));
 });
 
-// GET /new/:url* — also support GET for creating shortened URLs (backwards compat)
-router.get("/new/:url(*)", async (req: Request, res: Response) => {
-	await createUrlResponse(req, res, req.params.url as string);
+// GET /new/*url — also support GET for creating shortened URLs (backwards compat)
+router.get("/new/*url", async (req: Request, res: Response) => {
+	await createUrlResponse(req, res, wildcardParam(req.params.url));
 });
 
 // GET /:id — redirect to original URL
-router.get("/:id(\\d+)", async (req: Request, res: Response) => {
-	const id = parseInt(req.params.id as string, 10);
+router.get("/:id", async (req: Request, res: Response) => {
+	const rawId = req.params.id as string;
 
-	if (isNaN(id)) {
+	if (!/^\d+$/.test(rawId)) {
 		res.status(400).json({ error: "invalid id" });
 		return;
 	}
+
+	const id = parseInt(rawId, 10);
 
 	try {
 		const record = await findByShortId(id);
